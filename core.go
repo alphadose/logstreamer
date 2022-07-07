@@ -26,9 +26,13 @@ var (
 )
 
 // starts processing with the above populated global params
-func process() {
+func process(mongoCollectionName ...string) {
+	var collName = "users" // default
+	if len(mongoCollectionName) > 0 {
+		collName = mongoCollectionName[0]
+	}
 	// Initialize storage links
-	mongoStore := mongo.NewClient(mongoURI)
+	mongoStore := mongo.NewClient(mongoURI, collName)
 	grpcStore := grpc.NewClient(grpcURI)
 
 	// Initialize file reader

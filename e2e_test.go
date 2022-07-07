@@ -6,6 +6,7 @@ import (
 	"github.com/alphadose/logstreamer/grpc"
 	"github.com/alphadose/logstreamer/mongo"
 	"github.com/alphadose/logstreamer/types"
+	"github.com/alphadose/logstreamer/utils"
 )
 
 func isEqual(a, b *types.Payload) bool {
@@ -31,8 +32,10 @@ func TestEnd2End(t *testing.T) {
 	parallel = false
 	batchSize = 200
 
+	var collectionName = "test" + utils.GetTimeStamp()
+
 	// process file and upload data to both MongoDB and GRPC service
-	process()
+	process(collectionName)
 
 	grpcClient := grpc.NewClient(grpcURI)
 
@@ -41,7 +44,7 @@ func TestEnd2End(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mongoClient := mongo.NewClient(mongoURI)
+	mongoClient := mongo.NewClient(mongoURI, collectionName)
 
 	mongoData, err := mongoClient.FetchDocs()
 	if err != nil {
@@ -55,7 +58,7 @@ func TestEnd2End(t *testing.T) {
 
 	for idx := range mongoData {
 		if !contains(grpcData, mongoData[idx]) {
-			t.Fatal("Data retrieved from both MongoDB and GRPC sources are inconsistent")
+			t.Fatal("Data retrieved from MongoDB and GRPC sources are inconsistent")
 		}
 	}
 }

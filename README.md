@@ -39,6 +39,13 @@ $ ./lsr -f data_large.txt -grpc "localhost:3002" -mongo "mongodb://localhost:270
 [INFO] 7-7-2022 21:47:54 -> Successfully Completed
 ```
 
+## Testing
+
+```bash
+$ go test e2e_test.go core.go
+ok  	command-line-arguments	0.290s
+```
+
 ## Author
 
 Anish Mukherjee

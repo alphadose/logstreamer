@@ -24,7 +24,7 @@ var (
 	outFileStream = make(chan string, 1<<8)
 )
 
-func getTimeStamp() string {
+func GetTimeStamp() string {
 	return fmt.Sprintf("%v", time.Now().Unix())
 }
 
@@ -87,7 +87,7 @@ func GracefulExit(context string, err error) {
 
 func init() {
 	_ = os.MkdirAll("logs", 0755)
-	logfile, _ = os.Create(filepath.Join("logs", filepath.Base(fmt.Sprintf("app-%s.log", getTimeStamp()))))
+	logfile, _ = os.Create(filepath.Join("logs", filepath.Base(fmt.Sprintf("app-%s.log", GetTimeStamp()))))
 	go func() {
 		for {
 			if _, err := logfile.WriteString(<-outFileStream); err != nil {

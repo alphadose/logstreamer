@@ -20,7 +20,7 @@ type Store struct {
 
 // NewClient returns a new MongoDB storage
 // url format mongodb://mongodb0.example.com:27017
-func NewClient(url string) *Store {
+func NewClient(url string, collectionName string) *Store {
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
 	if err != nil {
@@ -32,7 +32,7 @@ func NewClient(url string) *Store {
 	utils.LogInfo("Mongo-Connection-3", "MongoDB Connection Established")
 	return &Store{
 		client: client,
-		coll:   client.Database("tyk").Collection("users"),
+		coll:   client.Database("tykx").Collection(collectionName),
 	}
 }
 
@@ -74,7 +74,7 @@ func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
 	return err
 }
 
-// fetchDocs is a function which returns all documents present the MongoDB store
+// FetchDocs is a function which returns all documents present the MongoDB store
 // used for testing purposes in `e2e_test.go`
 func (s *Store) FetchDocs() ([]*types.Payload, error) {
 	ctx := context.Background()
