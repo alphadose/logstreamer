@@ -1,0 +1,69 @@
+package main
+
+import (
+	"io"
+	"sync/atomic"
+
+	"github.com/alphadose/logstreamer/grpc"
+	"github.com/alphadose/logstreamer/mongo"
+	"github.com/alphadose/logstreamer/types"
+	"github.com/alphadose/logstreamer/utils"
+)
+
+var (
+	file     string
+	mongoURI string
+	grpcURI  string
+	// if the host system has enough power then network operations can be run asynchronously
+	// each via a separate goroutine
+	parallel bool
+	// read file and upload in batches to reduce the network I/O pressure as well as host system memory
+	// if file_size > 16 GB, it might not be loaded into main memory all at once due to hardware constraints
+	// and even if its loaded it will put tremendous pressure for transmission over the wire in which case
+	// significant network latency might be observable
+	// More efficient to chunk data and then transmit over the wire
+	batchSize uint64
+)
+
+// starts processing with the above populated global params
+func process() {
+	// Initialize storage links
+	mongoStore := mongo.NewClient(mongoURI)
+	grpcStore := grpc.NewClient(grpcURI)
+
+	// Initialize file reader
+	reader := utils.NewFileReader[types.Payload](file)
+	defer reader.Close()
+
+	for {
+		payloadBatch, err := reader.ReadLines(batchSize)
+		if err == io.EOF {
+			// Reached end of file
+			if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+				utils.GracefulExit("Core-1", err)
+			}
+			return
+		}
+		if err != nil {
+			utils.GracefulExit("Core-2", err)
+		}
+		if parallel {
+			go func() {
+				if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+					utils.GracefulExit("Core-3", err)
+				}
+			}()
+		} else if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+			utils.GracefulExit("Core-4", err)
+		}
+	}
+}
+
+// track the current batch being processed
+var batchNumber uint64
+
+// process a batch with both MongoDB and GRPC endpoints atomically
+func processBatch(payloads []*types.Payload, m *mongo.Store, g *grpc.Client) error {
+	utils.LogInfo("Core-Intermmediate", "Processing Batch: %d", atomic.AddUint64(&batchNumber, 1))
+	return m.Upload(func() error { return g.Publish(payloads) }, payloads)
+}

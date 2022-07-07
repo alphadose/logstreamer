@@ -19,7 +19,8 @@ var (
 // List is a lock-free linked list
 // theory -> https://www.cs.rochester.edu/u/scott/papers/1996_PODC_queues.pdf
 // pseudocode -> https://www.cs.rochester.edu/research/synchronization/pseudocode/queues.html
-// Used as a highly-efficient thread-safe in-memory storage for payload objects by the GRPC server
+// much faster and efficient than container/list + sync.Mutex
+// Used as a thread-safe in-memory storage for payload objects by the GRPC server
 type List struct {
 	head unsafe.Pointer
 	tail unsafe.Pointer
