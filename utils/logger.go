@@ -20,8 +20,8 @@ var (
 		InfoTAG:  "[INFO]",
 		DebugTAG: "[DEBUG]",
 	}
-	logfile   *os.File
-	outStream = make(chan string, 1<<12)
+	logfile       *os.File
+	outFileStream = make(chan string, 1<<8)
 )
 
 func getTimeStamp() string {
@@ -51,7 +51,9 @@ func out(context, message string, TAG int) {
 		minutes,
 		seconds,
 	)
-	outStream <- fmt.Sprintf("%s %s -> %s\n", tagToString[TAG], timeLog, message)
+	logOut := fmt.Sprintf("%s %s -> %s\n", tagToString[TAG], timeLog, message)
+	println(logOut)
+	outFileStream <- logOut
 }
 
 // Log logs to the console with your custom TAG
@@ -88,7 +90,7 @@ func init() {
 	logfile, _ = os.Create(filepath.Join("logs", filepath.Base(fmt.Sprintf("app-%d-%s.log", os.Getpid(), getTimeStamp()))))
 	go func() {
 		for {
-			if _, err := logfile.WriteString(<-outStream); err != nil {
+			if _, err := logfile.WriteString(<-outFileStream); err != nil {
 				println(err.Error())
 			}
 		}

@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const Port = ":3000"
+const Port = ":3002"
 
 type server struct {
 	pb.UnimplementedBrokerServer
