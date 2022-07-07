@@ -32,7 +32,7 @@ func NewClient(url string, collectionName string) *Store {
 	utils.LogInfo("Mongo-Connection-3", "MongoDB Connection Established")
 	return &Store{
 		client: client,
-		coll:   client.Database("tykx").Collection(collectionName),
+		coll:   client.Database("tyk").Collection(collectionName),
 	}
 }
 
