@@ -41,17 +41,30 @@ func main() {
 	defer reader.Close()
 
 	for {
-		payloadArray, err := reader.ReadLines(batchSize)
+		payloadBatch, err := reader.ReadLines(batchSize)
 		if err == io.EOF {
 			// Reached end of file
+			if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+				utils.GracefulExit("Main-1", err)
+			}
 			return
 		}
 		if err != nil {
-			utils.GracefulExit("Main-1", err)
-		}
-		if err := mongoStore.Upload(func() error { return grpcStore.Publish(payloadArray) }, nil); err != nil {
 			utils.GracefulExit("Main-2", err)
 		}
+		if parallel {
+			go func() {
+				if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+					utils.GracefulExit("Main-3", err)
+				}
+			}()
+		} else if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+			utils.GracefulExit("Main-4", err)
+		}
 	}
+}
 
+// process a batch with both MongoDB and GRPC endpoints atomically
+func processBatch(payloads []*types.Payload, m *mongo.Store, g *grpc.Client) error {
+	return m.Upload(func() error { return g.Publish(payloads) }, payloads)
 }

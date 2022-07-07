@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 
+	"github.com/alphadose/logstreamer/types"
 	"github.com/alphadose/logstreamer/utils"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,7 +41,7 @@ func NewClient(url string) *Store {
 // for ACID transactions in tandem with the callback function provided
 // This ensures either both MongoDB and the callback succeed or they both fail
 // the callback in this case is `upload to GRPC server` as per the problem statement
-func (s *Store) Upload(callback func() error, payloads ...any) error {
+func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
 	ctx := context.Background()
 	session, err := s.client.StartSession()
 	if err != nil {
@@ -52,8 +53,14 @@ func (s *Store) Upload(callback func() error, payloads ...any) error {
 	rc := readconcern.Majority()
 	txnOpts := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
 
+	// convert data to []any in order to make it compatible with MongoDB function arguments
+	uploadData := make([]any, len(payloads), len(payloads))
+	for idx := range payloads {
+		uploadData[idx] = payloads[idx]
+	}
+
 	transaction := func(sc mongo.SessionContext) (any, error) {
-		results, err := s.coll.InsertMany(sc, payloads)
+		results, err := s.coll.InsertMany(sc, uploadData)
 		if err != nil {
 			return nil, err
 		}
