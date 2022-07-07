@@ -62,7 +62,6 @@ func (c *Client) Consume(count int64) ([]*pb.Payload, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var (
 		data = make([]*pb.Payload, 0)
 		tmp  *pb.Payload

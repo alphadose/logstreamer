@@ -23,6 +23,7 @@ func ListenAndServe() error {
 	if err != nil {
 		utils.GracefulExit("GRPC-Serve-2", err)
 	}
+	utils.LogInfo("GRPC-Serve-3", "Listening on port %s", Port)
 	s := grpc.NewServer()
 	pb.RegisterBrokerServer(s, &server{})
 	return s.Serve(lis)
