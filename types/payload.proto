@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package types;
+option go_package = ".;types";
+
+// GRPC Broker Service
+service Broker {
+  // Send stream of payloads to the server
+  rpc Send(stream Payload) returns (Response) {};
+}
+
+// Response message consisting array of errors
+message Response {
+  repeated string errors = 1;
+}
+
+// Use https://github.com/favadi/protoc-go-inject-tag for generating protobuf objects
+// with both JSON as well as BSON tags for MongoDB compatibility
+// $ protoc --go-grpc_out=. --go_out=. payload.proto
+// $ protoc-go-inject-tag -input=./payload.pb.go
+
+// Payload to be transferred over GRPC
+message Payload {
+  string user_id = 1; // @gotags: bson:"user_id,omitempty"
+  string name = 2; // @gotags: bson:"name,omitempty"
+  string url = 3; // @gotags: bson:"url,omitempty"
+  float average_stars = 4; // @gotags: bson:"average_stars,omitempty"
+  int64 review_count = 5; // @gotags: bson:"review_count,omitempty"
+}
