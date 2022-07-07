@@ -47,7 +47,6 @@ func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
 	if err != nil {
 		return err
 	}
-	defer session.EndSession(ctx)
 
 	wc := writeconcern.New(writeconcern.WMajority())
 	rc := readconcern.Majority()
@@ -73,4 +72,22 @@ func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
 	}
 	_, err = session.WithTransaction(ctx, transaction, txnOpts)
 	return err
+}
+
+// fetchDocs is a function which returns all documents present the MongoDB store
+// used for testing purposes in `e2e_test.go`
+func (s *Store) FetchDocs() ([]*types.Payload, error) {
+	ctx := context.Background()
+	cursor, err := s.coll.Find(ctx, types.M{})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*types.Payload, cursor.RemainingBatchLength(), cursor.RemainingBatchLength())
+	for index := 0; cursor.Next(ctx) && index < cap(data); index++ {
+		data[index] = &types.Payload{}
+		if err := cursor.Decode(data[index]); err != nil {
+			return nil, err
+		}
+	}
+	return data, nil
 }
