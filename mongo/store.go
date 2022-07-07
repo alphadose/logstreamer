@@ -57,6 +57,8 @@ func (s *Store) Upload(callback func() error, payloads ...any) error {
 		if err != nil {
 			return nil, err
 		}
+		// Ensure either both the insert many operation and the callback (GRPC upload) succeed
+		// or else this entire transaction fails
 		if err := callback(); err != nil {
 			return nil, err
 		}

@@ -33,21 +33,28 @@ func ListenAndServe() error {
 func (*server) Publish(stream pb.Broker_PublishServer) error {
 	utils.LogInfo("GRPC-Publish-1", "New Connection Received")
 	var (
-		req *pb.Payload
-		err error
+		req         *pb.Payload
+		err         error
+		dataStaging = make([]*pb.Payload, 0) // staging storage which is only committed after sucessful operation
 	)
 	for {
 		req, err = stream.Recv()
 		// Check if the stream has finished
 		if err == io.EOF {
+			// reached end of stream, commit stating data into main storage and return success response
+			// this ensures both GRPC upload and MongoDB InsertMany transaction is entirely
+			// atomic in nature and ACID compliant
+			for idx := range dataStaging {
+				store.Enqueue(dataStaging[idx])
+			}
 			return stream.SendAndClose(&pb.Response{Success: true})
 		}
 		if err != nil {
 			utils.LogError("GRPC-Publish-2", err)
 			return stream.SendAndClose(&pb.Response{Success: false, Error: err.Error()})
 		}
-		// Store payload
-		store.Enqueue(req)
+		// Store payload to staging storage
+		dataStaging = append(dataStaging, req)
 	}
 }
 
