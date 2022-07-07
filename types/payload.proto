@@ -5,13 +5,21 @@ option go_package = ".;types";
 
 // GRPC Broker Service
 service Broker {
-  // Send stream of payloads to the server
-  rpc Send(stream Payload) returns (Response) {};
+  // Publish sends a stream of payloads to the server for in-memory storage
+  rpc Publish(stream Payload) returns (Response) {};
+  // Consume consumes a specified number of objects from the server
+  rpc Consume(ConsumeRequest) returns (stream Payload) {};
 }
 
 // Response message consisting array of errors
 message Response {
-  repeated string errors = 1;
+  bool success = 1;
+  string error = 2;
+}
+
+// ConsumeRequest message is used for consuming specified number of objects from the server
+message ConsumeRequest {
+  int64 count = 1;
 }
 
 // Use https://github.com/favadi/protoc-go-inject-tag for generating protobuf objects
