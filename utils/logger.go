@@ -52,7 +52,7 @@ func out(context, message string, TAG int) {
 		seconds,
 	)
 	logOut := fmt.Sprintf("%s %s -> %s\n", tagToString[TAG], timeLog, message)
-	println(logOut)
+	print(logOut)
 	outFileStream <- logOut
 }
 

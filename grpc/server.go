@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	pb "github.com/alphadose/logstreamer/types"
+	"github.com/alphadose/logstreamer/types"
 	"github.com/alphadose/logstreamer/utils"
 
 	"google.golang.org/grpc"
@@ -14,7 +14,7 @@ import (
 const Port = ":3002"
 
 type server struct {
-	pb.UnimplementedBrokerServer
+	types.UnimplementedBrokerServer
 }
 
 func ListenAndServe() error {
@@ -25,17 +25,17 @@ func ListenAndServe() error {
 	}
 	utils.LogInfo("GRPC-Serve-3", "Listening on port %s", Port)
 	s := grpc.NewServer()
-	pb.RegisterBrokerServer(s, &server{})
+	types.RegisterBrokerServer(s, &server{})
 	return s.Serve(lis)
 }
 
 // Publish receives data stream from multiple clients and stores them in-memory
-func (*server) Publish(stream pb.Broker_PublishServer) error {
+func (*server) Publish(stream types.Broker_PublishServer) error {
 	utils.LogInfo("GRPC-Publish-1", "New Connection Received")
 	var (
-		req         *pb.Payload
+		req         *types.Payload
 		err         error
-		dataStaging = make([]*pb.Payload, 0) // staging storage which is only committed after sucessful operation
+		dataStaging = make([]*types.Payload, 0) // staging storage which is only committed after sucessful operation
 	)
 	for {
 		req, err = stream.Recv()
@@ -47,11 +47,11 @@ func (*server) Publish(stream pb.Broker_PublishServer) error {
 			for idx := range dataStaging {
 				store.Enqueue(dataStaging[idx])
 			}
-			return stream.SendAndClose(&pb.Response{Success: true})
+			return stream.SendAndClose(&types.Response{Success: true})
 		}
 		if err != nil {
 			utils.LogError("GRPC-Publish-2", err)
-			return stream.SendAndClose(&pb.Response{Success: false, Error: err.Error()})
+			return stream.SendAndClose(&types.Response{Success: false, Error: err.Error()})
 		}
 		// Store payload to staging storage
 		dataStaging = append(dataStaging, req)
@@ -65,12 +65,12 @@ var (
 
 // Consume consumes data objects stored in the GRPC server via a streaming response
 // NOTE:- each payload can be consumed only once
-func (*server) Consume(req *pb.ConsumeRequest, stream pb.Broker_ConsumeServer) error {
+func (*server) Consume(req *types.ConsumeRequest, stream types.Broker_ConsumeServer) error {
 	utils.LogInfo("GRPC-Consume-1", "New Connection Received")
 	if req.GetCount() <= 0 {
 		return errInvalidCountParameter
 	}
-	var data *pb.Payload
+	var data *types.Payload
 	for ctr := req.GetCount(); ctr > 0; ctr-- {
 		data = store.Dequeue()
 		if data != nil {

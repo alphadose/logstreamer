@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	pb "github.com/alphadose/logstreamer/types"
+	"github.com/alphadose/logstreamer/types"
 	"github.com/alphadose/logstreamer/utils"
 
 	"google.golang.org/grpc"
@@ -13,7 +13,7 @@ import (
 
 // Client is the GRPC client struct
 type Client struct {
-	conn pb.BrokerClient
+	conn types.BrokerClient
 }
 
 // NewClient returns a new GRPC client give its URL IP:PORT or DNS:PORT
@@ -23,11 +23,11 @@ func NewClient(url string) *Client {
 	if err != nil {
 		utils.GracefulExit("GRPC-Client-1", err)
 	}
-	return &Client{conn: pb.NewBrokerClient(c)}
+	return &Client{conn: types.NewBrokerClient(c)}
 }
 
 // Publish data to the GRPC server
-func (c *Client) Publish(payloads []*pb.Payload) error {
+func (c *Client) Publish(payloads []*types.Payload) error {
 	stream, err := c.conn.Publish(context.Background())
 	if err != nil {
 		return err
@@ -54,17 +54,17 @@ func (c *Client) Publish(payloads []*pb.Payload) error {
 }
 
 // Consume data from the GRPC server
-func (c *Client) Consume(count int64) ([]*pb.Payload, error) {
+func (c *Client) Consume(count int64) ([]*types.Payload, error) {
 	if count <= 0 {
 		return nil, errInvalidCountParameter
 	}
-	stream, err := c.conn.Consume(context.Background(), &pb.ConsumeRequest{Count: count})
+	stream, err := c.conn.Consume(context.Background(), &types.ConsumeRequest{Count: count})
 	if err != nil {
 		return nil, err
 	}
 	var (
-		data = make([]*pb.Payload, 0)
-		tmp  *pb.Payload
+		data = make([]*types.Payload, 0)
+		tmp  *types.Payload
 	)
 	for {
 		tmp, err = stream.Recv()

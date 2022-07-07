@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	pb "github.com/alphadose/logstreamer/types"
+	"github.com/alphadose/logstreamer/types"
 )
 
 // global memory pool for storing and leasing node objects
@@ -35,11 +35,11 @@ func NewList() List {
 // a single node in the linked list
 type node struct {
 	next  unsafe.Pointer
-	value *pb.Payload
+	value *types.Payload
 }
 
 // Enqueue inserts a value into the list
-func (l *List) Enqueue(value *pb.Payload) {
+func (l *List) Enqueue(value *types.Payload) {
 	var (
 		n          = nodeGet().(unsafe.Pointer)
 		tail, next unsafe.Pointer
@@ -64,7 +64,7 @@ func (l *List) Enqueue(value *pb.Payload) {
 
 // Dequeue removes and returns the value at the head of the queue to the memory pool
 // It returns nil if the list is empty
-func (l *List) Dequeue() (value *pb.Payload) {
+func (l *List) Dequeue() (value *types.Payload) {
 	var head, tail, next unsafe.Pointer
 	for {
 		head = atomic.LoadPointer(&l.head)
