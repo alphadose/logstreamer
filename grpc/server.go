@@ -58,10 +58,7 @@ func (*server) Publish(stream types.Broker_PublishServer) error {
 	}
 }
 
-var (
-	errInvalidCountParameter = errors.New("Invalid count parameter specified")
-	errNoMoreObjects         = errors.New("No more objects present in storage")
-)
+var errInvalidCountParameter = errors.New("Invalid count parameter specified")
 
 // Consume consumes data objects stored in the GRPC server via a streaming response
 // NOTE:- each payload can be consumed only once
@@ -71,6 +68,7 @@ func (*server) Consume(req *types.ConsumeRequest, stream types.Broker_ConsumeSer
 		return errInvalidCountParameter
 	}
 	var data *types.Payload
+	// try dequeue till given count, if count > len(queue) then len(queue) items will be returned
 	for ctr := req.GetCount(); ctr > 0; ctr-- {
 		data = store.Dequeue()
 		if data != nil {
@@ -78,7 +76,7 @@ func (*server) Consume(req *types.ConsumeRequest, stream types.Broker_ConsumeSer
 				return err
 			}
 		} else {
-			return errNoMoreObjects
+			return nil
 		}
 	}
 	return nil

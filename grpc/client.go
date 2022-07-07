@@ -72,7 +72,7 @@ func (c *Client) Consume(count int64) ([]*types.Payload, error) {
 			return data, nil
 		}
 		if err != nil {
-			return data, err
+			return nil, err
 		}
 		data = append(data, tmp)
 	}
