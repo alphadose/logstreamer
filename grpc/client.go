@@ -34,8 +34,8 @@ func (c *Client) Publish(payloads []*types.Payload) error {
 	}
 
 	// Iterate over the request message
-	for _, p := range payloads {
-		if err := stream.Send(p); err != nil {
+	for idx := range payloads {
+		if err := stream.Send(payloads[idx]); err != nil {
 			return err
 		}
 	}

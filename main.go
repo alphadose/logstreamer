@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"io"
+	"sync/atomic"
 
 	"github.com/alphadose/logstreamer/grpc"
 	"github.com/alphadose/logstreamer/mongo"
@@ -40,6 +41,7 @@ func main() {
 	reader := utils.NewFileReader[types.Payload](file)
 	defer reader.Close()
 
+	utils.LogInfo("Main-Start", "Starting Operation")
 	for {
 		payloadBatch, err := reader.ReadLines(batchSize)
 		if err == io.EOF {
@@ -47,6 +49,7 @@ func main() {
 			if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 				utils.GracefulExit("Main-1", err)
 			}
+			utils.LogInfo("Main-End", "Successfully Completed")
 			return
 		}
 		if err != nil {
@@ -64,7 +67,11 @@ func main() {
 	}
 }
 
+// track the current batch being processed
+var batchNumber uint64
+
 // process a batch with both MongoDB and GRPC endpoints atomically
 func processBatch(payloads []*types.Payload, m *mongo.Store, g *grpc.Client) error {
+	utils.LogInfo("Main-Intermmediate", "Processing Batch: %d", atomic.AddUint64(&batchNumber, 1))
 	return m.Upload(func() error { return g.Publish(payloads) }, payloads)
 }

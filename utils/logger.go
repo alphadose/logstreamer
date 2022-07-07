@@ -87,7 +87,7 @@ func GracefulExit(context string, err error) {
 
 func init() {
 	_ = os.MkdirAll("logs", 0755)
-	logfile, _ = os.Create(filepath.Join("logs", filepath.Base(fmt.Sprintf("app-%d-%s.log", os.Getpid(), getTimeStamp()))))
+	logfile, _ = os.Create(filepath.Join("logs", filepath.Base(fmt.Sprintf("app-%s.log", getTimeStamp()))))
 	go func() {
 		for {
 			if _, err := logfile.WriteString(<-outFileStream); err != nil {
