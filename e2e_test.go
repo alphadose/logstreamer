@@ -22,15 +22,7 @@ func isEqual(a, b *types.Payload) bool {
 // and store it in MongoDB as well as a GRPC server
 // then retrieve data from both the MongoDB and GRPC servers separately in the form of golang slices
 // sort both of them in a particular order then check if they are equal or not
-func TestEnd2End(t *testing.T) {
-	file = "./data.txt"
-	mongoURI = "mongodb://localhost:27017"
-	grpcURI = "localhost" + grpc.Port
-	parallel = false
-	batchSize = 200
-
-	var collectionName = "test" + utils.GetTimeStamp()
-
+func doTestRun(t *testing.T, collectionName string) {
 	// process file and upload data to both MongoDB and GRPC service
 	process(collectionName)
 
@@ -69,4 +61,25 @@ func TestEnd2End(t *testing.T) {
 			t.Fatal("Data retrieved from MongoDB and GRPC sources are inconsistent")
 		}
 	}
+}
+
+// TestSeuquentialFlow tests the application in single-goroutine mode
+func TestSeuquentialFlow(t *testing.T) {
+	file = "./data.txt"
+	mongoURI = "mongodb://localhost:27017"
+	grpcURI = "localhost" + grpc.Port
+	parallel = false
+	batchSize = 1
+	doTestRun(t, "testseq"+utils.GetTimeStamp())
+}
+
+// TestParallelFlow tests the application in multi-goroutine mode
+// this is the test for application run with the `-parallel` flag
+func TestParallelFlow(t *testing.T) {
+	file = "./data.txt"
+	mongoURI = "mongodb://localhost:27017"
+	grpcURI = "localhost" + grpc.Port
+	parallel = true
+	batchSize = 1
+	doTestRun(t, "testpara"+utils.GetTimeStamp())
 }

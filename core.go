@@ -51,8 +51,10 @@ func process(mongoCollectionName ...string) {
 				// synchronize all running upload goroutines and wait for them to either finish or log error before process exit
 				wg.Wait()
 			}
-			if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
-				utils.GracefulExit("Core-1", err)
+			if len(payloadBatch) > 0 {
+				if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+					utils.LogError("Core-1", err)
+				}
 			}
 			return
 		}
