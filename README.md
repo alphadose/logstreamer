@@ -1,4 +1,5 @@
 # logstreamer
+[![Main Actions Status](https://github.com/alphadose/logstreamer/workflows/Go/badge.svg)](https://github.com/alphadose/logstreamer/actions)
 > A CLI tool for streaming logs to different kinds of storage layers such as MongoDB and GRPC service
 
 ## Usage
