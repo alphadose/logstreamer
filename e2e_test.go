@@ -67,7 +67,7 @@ func doTestRun(t *testing.T, collectionName string) {
 func TestSeuquentialFlow(t *testing.T) {
 	file = "./data.txt"
 	mongoURI = "mongodb://localhost:27017"
-	grpcURI = "localhost" + grpc.Port
+	grpcURI = "localhost:3002"
 	parallel = false
 	batchSize = 1
 	doTestRun(t, "testseq"+utils.GetTimeStamp())
@@ -78,7 +78,7 @@ func TestSeuquentialFlow(t *testing.T) {
 func TestParallelFlow(t *testing.T) {
 	file = "./data.txt"
 	mongoURI = "mongodb://localhost:27017"
-	grpcURI = "localhost" + grpc.Port
+	grpcURI = "localhost:3003"
 	parallel = true
 	batchSize = 1
 	doTestRun(t, "testpara"+utils.GetTimeStamp())

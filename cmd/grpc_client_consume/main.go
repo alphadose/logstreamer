@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	client := grpc.NewClient("localhost" + grpc.Port)
+	client := grpc.NewClient("localhost:3002")
 	data, err := client.Consume(5)
 	if err != nil {
 		println(err.Error())

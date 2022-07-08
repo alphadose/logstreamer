@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
 
@@ -11,20 +12,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-const Port = ":3002"
-
 type server struct {
 	types.UnimplementedBrokerServer
 }
 
 // ListenAndServe binds the GRPC server to the port and starts listening
-func ListenAndServe() error {
+func ListenAndServe(port uint64) error {
 	utils.LogInfo("GRPC-Serve-1", "Starting GRPC server")
-	lis, err := net.Listen("tcp", Port)
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		utils.GracefulExit("GRPC-Serve-2", err)
 	}
-	utils.LogInfo("GRPC-Serve-3", "Listening on port %s", Port)
+	utils.LogInfo("GRPC-Serve-3", "Listening on port %d", port)
 	s := grpc.NewServer()
 	types.RegisterBrokerServer(s, &server{})
 	return s.Serve(lis)

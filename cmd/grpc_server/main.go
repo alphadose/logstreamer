@@ -1,9 +1,16 @@
 package main
 
-import "github.com/alphadose/logstreamer/grpc"
+import (
+	"flag"
+
+	"github.com/alphadose/logstreamer/grpc"
+)
 
 func main() {
-	if err := grpc.ListenAndServe(); err != nil {
+	var port uint64
+	flag.Uint64Var(&port, "port", 3002, "port for running the GRPC server")
+	flag.Parse()
+	if err := grpc.ListenAndServe(port); err != nil {
 		println(err.Error())
 	}
 }

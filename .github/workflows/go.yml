@@ -25,7 +25,8 @@ jobs:
 
     - name: Test
       run: |
-        go run cmd/grpc_server/main.go &
-        sleep 7 # wait for the above GRPC server to spawn for testing
+        go run cmd/grpc_server/main.go -p 3002 &
+        go run cmd/grpc_server/main.go -p 3003 & # Two GRPC instances for 2 different tests
+        sleep 7 # wait for the above GRPC servers to spawn for testing
         go test e2e_test.go core.go
 
