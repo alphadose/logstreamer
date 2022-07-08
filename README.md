@@ -6,6 +6,8 @@
 
 You need Golang [1.18.x](https://go.dev/dl/) or above since this package uses generics
 
+It also requires MongoDB [replica-set](https://www.mongodb.com/docs/manual/tutorial/deploy-replica-set/) to be enabled for utilizing [transactions](https://www.mongodb.com/docs/manual/core/transactions/)
+
 ```bash
 # Build the binary
 $ go build -o lsr
