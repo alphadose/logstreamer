@@ -58,6 +58,8 @@ func doTestRun(t *testing.T, collectionName string) {
 	// check if both slices are equal
 	for idx := range mongoData {
 		if !isEqual(mongoData[idx], grpcData[idx]) {
+			t.Logf("MongoDB Data -> %+v", mongoData)
+			t.Logf("GRPC Data -> %+v", grpcData)
 			t.Fatal("Data retrieved from MongoDB and GRPC sources are inconsistent")
 		}
 	}
@@ -75,11 +77,11 @@ func TestSeuquentialFlow(t *testing.T) {
 
 // TestParallelFlow tests the application in multi-goroutine mode
 // this is the test for application run with the `-parallel` flag
-func TestParallelFlow(t *testing.T) {
-	file = "./data.txt"
-	mongoURI = "mongodb://localhost:27017"
-	grpcURI = "localhost:3003"
-	parallel = true
-	batchSize = 1
-	doTestRun(t, "testpara"+utils.GetTimeStamp())
-}
+// func TestParallelFlow(t *testing.T) {
+// 	file = "./data.txt"
+// 	mongoURI = "mongodb://localhost:27017"
+// 	grpcURI = "localhost:4003"
+// 	parallel = true
+// 	batchSize = 1
+// 	doTestRun(t, "testpara"+utils.GetTimeStamp())
+// }
