@@ -25,8 +25,7 @@ jobs:
 
     - name: Test
       run: |
-        go run cmd/grpc_server/main.go -port 3002 & # Ports 3002 and 3003 hard-coded as per config in e2e_test.go
-        go run cmd/grpc_server/main.go -port 3003 & # Two GRPC instances for the 2 different tests - sequential and parallel
+        go run cmd/grpc_server/main.go -port 3002 &
         sleep 7 # wait for the above GRPC servers to spawn for testing
         go test e2e_test.go core.go
 
