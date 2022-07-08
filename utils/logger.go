@@ -24,6 +24,7 @@ var (
 	outFileStream = make(chan string, 1<<8)
 )
 
+// GetTimeStamp returns the current UNIX timestamp
 func GetTimeStamp() string {
 	return fmt.Sprintf("%v", time.Now().Unix())
 }

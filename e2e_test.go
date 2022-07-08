@@ -10,6 +10,7 @@ import (
 	"github.com/alphadose/logstreamer/utils"
 )
 
+// check if both payload are equal or not by checking each individual field
 func isEqual(a, b *types.Payload) bool {
 	if a.GetName() != b.GetName() || a.GetUserId() != b.GetUserId() || a.GetReviewCount() != b.GetReviewCount() || a.GetUrl() != b.GetUrl() {
 		return false

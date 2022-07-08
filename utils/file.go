@@ -7,6 +7,8 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+// jsoniter has better peformance than standard encoding/json
+// https://github.com/json-iterator/go
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // FileReader is a structure for reading files in batches of lines

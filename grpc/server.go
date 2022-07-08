@@ -17,6 +17,7 @@ type server struct {
 	types.UnimplementedBrokerServer
 }
 
+// ListenAndServe binds the GRPC server to the port and starts listening
 func ListenAndServe() error {
 	utils.LogInfo("GRPC-Serve-1", "Starting GRPC server")
 	lis, err := net.Listen("tcp", Port)
