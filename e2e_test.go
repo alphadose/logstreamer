@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/alphadose/logstreamer/grpc"
@@ -16,15 +17,10 @@ func isEqual(a, b *types.Payload) bool {
 	return true
 }
 
-func contains(arr []*types.Payload, elem *types.Payload) bool {
-	for idx := range arr {
-		if isEqual(arr[idx], elem) {
-			return true
-		}
-	}
-	return false
-}
-
+// Description: Parse data.txt which contains 5 JSON payloads
+// and store it in MongoDB as well as a GRPC server
+// then retrieve data from both the MongoDB and GRPC servers separately in the form of golang slices
+// sort both of them in a particular order then check if they are equal or not
 func TestEnd2End(t *testing.T) {
 	file = "./data.txt"
 	mongoURI = "mongodb://localhost:27017"
@@ -56,8 +52,19 @@ func TestEnd2End(t *testing.T) {
 		t.Fatal("Unequal sizes of array received from MongoDB and GRPC service")
 	}
 
+	// Sort both slices in a particular order for checking if both are equal or not
+	// In this case they are sorted with respect to review_count
+	// all review_count fields have unique values in the file `data.txt` so there are no edge cases in this test
+	sort.Slice(grpcData, func(i, j int) bool {
+		return grpcData[i].GetReviewCount() < grpcData[j].GetReviewCount()
+	})
+	sort.Slice(mongoData, func(i, j int) bool {
+		return mongoData[i].GetReviewCount() < mongoData[j].GetReviewCount()
+	})
+
+	// check if both slices are equal
 	for idx := range mongoData {
-		if !contains(grpcData, mongoData[idx]) {
+		if !isEqual(mongoData[idx], grpcData[idx]) {
 			t.Fatal("Data retrieved from MongoDB and GRPC sources are inconsistent")
 		}
 	}
