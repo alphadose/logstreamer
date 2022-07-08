@@ -36,7 +36,7 @@ func process(mongoCollectionName ...string) {
 		collName = mongoCollectionName[0]
 	}
 	// Initialize storage links
-	mongoStore := mongo.NewClient(mongoURI, collName)
+	mongoStore := mongo.NewClient[types.Payload](mongoURI, collName)
 	grpcStore := grpc.NewClient(grpcURI)
 
 	// Initialize file reader
@@ -79,7 +79,7 @@ func process(mongoCollectionName ...string) {
 var batchNumber uint64
 
 // process a batch with both MongoDB and GRPC endpoints atomically
-func processBatch(payloads []*types.Payload, m *mongo.Store, g *grpc.Client) error {
+func processBatch(payloads []*types.Payload, m *mongo.Store[types.Payload], g *grpc.Client) error {
 	utils.LogInfo("Core-Intermmediate", "Processing Batch: %d", atomic.AddUint64(&batchNumber, 1))
 	return m.Upload(func() error { return g.Publish(payloads) }, payloads)
 }

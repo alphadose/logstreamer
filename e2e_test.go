@@ -33,7 +33,7 @@ func doTestRun(t *testing.T, collectionName string) {
 		t.Fatal(err)
 	}
 
-	mongoClient := mongo.NewClient(mongoURI, collectionName)
+	mongoClient := mongo.NewClient[types.Payload](mongoURI, collectionName)
 
 	mongoData, err := mongoClient.FetchDocs()
 	if err != nil {

@@ -13,14 +13,14 @@ import (
 )
 
 // Store represents MongoDB repository storage
-type Store struct {
+type Store[T any] struct {
 	client *mongo.Client
 	coll   *mongo.Collection
 }
 
 // NewClient returns a new MongoDB storage
 // url format mongodb://mongodb0.example.com:27017
-func NewClient(url string, collectionName string) *Store {
+func NewClient[T any](url string, collectionName string) *Store[T] {
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
 	if err != nil {
@@ -30,7 +30,7 @@ func NewClient(url string, collectionName string) *Store {
 		utils.GracefulExit("Mongo-Connection-2", err)
 	}
 	utils.LogInfo("Mongo-Connection-3", "MongoDB Connection Established")
-	return &Store{
+	return &Store[T]{
 		client: client,
 		coll:   client.Database("tyk").Collection(collectionName),
 	}
@@ -42,7 +42,7 @@ func NewClient(url string, collectionName string) *Store {
 // This ensures either both MongoDB and the callback succeed or they both fail
 // the callback in this case is `upload to GRPC server` as per the problem statement
 // Note:- MongoDB transaction feature requires replica sets https://www.mongodb.com/docs/manual/replication/
-func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
+func (s *Store[T]) Upload(callback func() error, payloads []*T) error {
 	ctx := context.Background()
 	session, err := s.client.StartSession()
 	if err != nil {
@@ -77,15 +77,15 @@ func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
 
 // FetchDocs is a function which returns all documents present the MongoDB store
 // used for testing purposes in `e2e_test.go`
-func (s *Store) FetchDocs() ([]*types.Payload, error) {
+func (s *Store[T]) FetchDocs() ([]*T, error) {
 	ctx := context.Background()
 	cursor, err := s.coll.Find(ctx, types.M{})
 	if err != nil {
 		return nil, err
 	}
-	data := make([]*types.Payload, cursor.RemainingBatchLength(), cursor.RemainingBatchLength())
+	data := make([]*T, cursor.RemainingBatchLength(), cursor.RemainingBatchLength())
 	for index := 0; cursor.Next(ctx) && index < cap(data); index++ {
-		data[index] = &types.Payload{}
+		data[index] = new(T)
 		if err := cursor.Decode(data[index]); err != nil {
 			return nil, err
 		}
