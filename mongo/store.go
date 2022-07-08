@@ -41,6 +41,7 @@ func NewClient(url string, collectionName string) *Store {
 // for ACID transactions in tandem with the callback function provided
 // This ensures either both MongoDB and the callback succeed or they both fail
 // the callback in this case is `upload to GRPC server` as per the problem statement
+// Note:- MongoDB transaction feature requires replica sets https://www.mongodb.com/docs/manual/replication/
 func (s *Store) Upload(callback func() error, payloads []*types.Payload) error {
 	ctx := context.Background()
 	session, err := s.client.StartSession()
