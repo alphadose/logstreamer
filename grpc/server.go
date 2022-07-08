@@ -35,7 +35,7 @@ func (*server) Publish(stream types.Broker_PublishServer) error {
 	var (
 		req         *types.Payload
 		err         error
-		dataStaging = make([]*types.Payload, 0) // staging storage which is only committed after sucessful operation
+		dataStaging = make([]*types.Payload, 0) // staging storage which is only committed after successful operation
 	)
 	for {
 		req, err = stream.Recv()
