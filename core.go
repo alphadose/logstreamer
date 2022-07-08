@@ -47,12 +47,12 @@ func process(mongoCollectionName ...string) {
 		payloadBatch, err := reader.ReadLines(batchSize)
 		if err == io.EOF {
 			// Reached end of file
+			if parallel {
+				// synchronize all running upload goroutines and wait for them to either finish or log error before process exit
+				wg.Wait()
+			}
 			if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 				utils.GracefulExit("Core-1", err)
-			}
-			if parallel {
-				// synchronize all running upload goroutines and wait for them to finish before process exit
-				wg.Wait()
 			}
 			return
 		}
@@ -63,7 +63,7 @@ func process(mongoCollectionName ...string) {
 			wg.Add(1)
 			go func() {
 				if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
-					utils.GracefulExit("Core-3", err)
+					utils.LogError("Core-Parallel-3", err)
 				}
 				wg.Done()
 			}()
