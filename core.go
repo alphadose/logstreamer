@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"sync"
 	"sync/atomic"
 
 	"github.com/alphadose/logstreamer/grpc"
@@ -27,7 +28,10 @@ var (
 
 // starts processing with the above populated global params
 func process(mongoCollectionName ...string) {
-	var collName = "users" // default
+	var (
+		collName = "users"      // default
+		wg       sync.WaitGroup // waitgroup for synchronization in case `-parallel` flag is specified
+	)
 	if len(mongoCollectionName) > 0 {
 		collName = mongoCollectionName[0]
 	}
@@ -43,8 +47,12 @@ func process(mongoCollectionName ...string) {
 		payloadBatch, err := reader.ReadLines(batchSize)
 		if err == io.EOF {
 			// Reached end of file
-			if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+			if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 				utils.GracefulExit("Core-1", err)
+			}
+			if parallel {
+				// synchronize all running upload goroutines and wait for them to finish before process exit
+				wg.Wait()
 			}
 			return
 		}
@@ -52,12 +60,14 @@ func process(mongoCollectionName ...string) {
 			utils.GracefulExit("Core-2", err)
 		}
 		if parallel {
+			wg.Add(1)
 			go func() {
 				if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 					utils.GracefulExit("Core-3", err)
 				}
+				wg.Done()
 			}()
-		} else if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+		} else if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 			utils.GracefulExit("Core-4", err)
 		}
 	}
