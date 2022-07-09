@@ -48,6 +48,7 @@ func (s *Store[T]) Upload(callback func() error, payloads []*T) error {
 	if err != nil {
 		return err
 	}
+	defer session.EndSession(ctx)
 
 	wc := writeconcern.New(writeconcern.WMajority())
 	rc := readconcern.Majority()
@@ -64,7 +65,7 @@ func (s *Store[T]) Upload(callback func() error, payloads []*T) error {
 		if err != nil {
 			return nil, err
 		}
-		// Ensure either both the insert many operation and the callback (GRPC upload) succeed
+		// Ensure either both the insert_many operation and the callback (GRPC upload) succeed
 		// or else this entire transaction fails
 		if err := callback(); err != nil {
 			return nil, err

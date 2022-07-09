@@ -41,7 +41,7 @@ func (*server) Publish(stream types.Broker_PublishServer) error {
 		req, err = stream.Recv()
 		// Check if the stream has finished
 		if err == io.EOF {
-			// reached end of stream, commit stating data into main storage and return success response
+			// reached end of stream, commit staging data into main storage and return success response
 			// this ensures both GRPC upload and MongoDB InsertMany transaction is entirely
 			// atomic in nature and ACID compliant
 			for idx := range dataStaging {

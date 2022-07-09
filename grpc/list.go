@@ -13,7 +13,7 @@ var (
 	nodePool = sync.Pool{New: func() any { return unsafe.Pointer(new(node)) }}
 	nodeGet  = nodePool.Get
 	nodePut  = nodePool.Put
-	store    = NewList()
+	store    = NewList() // main data storage for GRPC server
 )
 
 // List is a lock-free linked list
