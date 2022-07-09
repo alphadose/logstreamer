@@ -1,14 +1,22 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/alphadose/logstreamer/grpc"
 )
 
 func main() {
-	client := grpc.NewClient("localhost:3002")
-	data, err := client.Consume(5)
+	var (
+		count int64
+		url   string
+	)
+	flag.Int64Var(&count, "c", 1<<61, "Number of objects to consume")
+	flag.StringVar(&url, "url", "localhost:3002", "URL of GRPC servr")
+	flag.Parse()
+	client := grpc.NewClient(url)
+	data, err := client.Consume(count)
 	if err != nil {
 		println(err.Error())
 	}

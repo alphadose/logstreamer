@@ -18,6 +18,17 @@ func isEqual(a, b *types.Payload) bool {
 	return true
 }
 
+func printData(t *testing.T, grpcData, mongoData []*types.Payload) {
+	t.Logf("MongoDB Data\n")
+	for idx := range mongoData {
+		t.Logf("%#v\n", mongoData[idx])
+	}
+	t.Logf("\nGRPC Data\n")
+	for idx := range grpcData {
+		t.Logf("%#v\n", grpcData[idx])
+	}
+}
+
 // Description: Parse data.txt which contains 5 JSON payloads
 // and store it in MongoDB as well as a GRPC server
 // then retrieve data from both the MongoDB and GRPC servers separately in the form of golang slices
@@ -27,14 +38,12 @@ func doTestRun(t *testing.T, collectionName string) {
 	process(collectionName)
 
 	grpcClient := grpc.NewClient(grpcURI)
-
-	grpcData, err := grpcClient.Consume(5) // number of payloads in data.txt = 5
+	grpcData, err := grpcClient.Consume(1 << 61) // consume all objects present in the GRPC server
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	mongoClient := mongo.NewClient[types.Payload](mongoURI, collectionName)
-
 	mongoData, err := mongoClient.FetchDocs()
 	if err != nil {
 		t.Fatal(err)
@@ -42,6 +51,8 @@ func doTestRun(t *testing.T, collectionName string) {
 
 	// if mongoData and grpcData have all equal elements ignoring the order, then this test is successful
 	if len(mongoData) != len(grpcData) {
+		t.Logf("MongoSize %d : GRPC size %d\n", len(mongoData), len(grpcData))
+		printData(t, grpcData, mongoData)
 		t.Fatal("Unequal sizes of array received from MongoDB and GRPC service")
 	}
 
@@ -58,8 +69,7 @@ func doTestRun(t *testing.T, collectionName string) {
 	// check if both slices are equal
 	for idx := range mongoData {
 		if !isEqual(mongoData[idx], grpcData[idx]) {
-			t.Logf("MongoDB Data -> %+v", mongoData)
-			t.Logf("GRPC Data -> %+v", grpcData)
+			printData(t, grpcData, mongoData)
 			t.Fatal("Data retrieved from MongoDB and GRPC sources are inconsistent")
 		}
 	}
@@ -71,17 +81,17 @@ func TestSeuquentialFlow(t *testing.T) {
 	mongoURI = "mongodb://localhost:27017"
 	grpcURI = "localhost:3002"
 	parallel = false
-	batchSize = 1
+	batchSize = 3
 	doTestRun(t, "testseq"+utils.GetTimeStamp())
 }
 
 // TestParallelFlow tests the application in multi-goroutine mode
 // this is the test for application run with the `-parallel` flag
-// func TestParallelFlow(t *testing.T) {
-// 	file = "./data.txt"
-// 	mongoURI = "mongodb://localhost:27017"
-// 	grpcURI = "localhost:4003"
-// 	parallel = true
-// 	batchSize = 1
-// 	doTestRun(t, "testpara"+utils.GetTimeStamp())
-// }
+func TestParallelFlow(t *testing.T) {
+	file = "./data.txt"
+	mongoURI = "mongodb://localhost:27017"
+	grpcURI = "localhost:3002"
+	parallel = true
+	batchSize = 4
+	doTestRun(t, "testpara"+utils.GetTimeStamp())
+}

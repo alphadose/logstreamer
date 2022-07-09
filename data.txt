@@ -3,3 +3,5 @@
 {"user_id": "david06", "name": "Jonathan George", "url": "https://example.com/user_details?userid=david06", "average_stars": 5.0, "review_count": 56}
 {"user_id": "santiagoerika", "name": "Amanda Taylor", "url": "https://www.example.com/user_details?userid=santiagoerika", "average_stars": 3.8, "review_count": 31}
 {"user_id": "rodriguezdennis", "name": "Jennifer Roach", "url": "http://www.example.com/user_details?userid=rodriguezdennis", "average_stars": 2.7, "review_count": 8}
+{"user_id": "altair", "name": "Altair", "url": "http://www.example.com/user_details?userid=altair", "average_stars": 4.3, "review_count": 43}
+{"user_id": "nil", "name": "Z3R0", "url": "http://www.example.com/user_details?userid=0", "average_stars": 0, "review_count": 0}
