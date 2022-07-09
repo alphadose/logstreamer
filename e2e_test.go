@@ -29,7 +29,7 @@ func printData(t *testing.T, grpcData, mongoData []*types.Payload) {
 	}
 }
 
-// Description: Parse data.txt which contains 5 JSON payloads
+// Description: Parse data.txt which contains 7 JSON payloads
 // and store it in MongoDB as well as a GRPC server
 // then retrieve data from both the MongoDB and GRPC servers separately in the form of golang slices
 // sort both of them in a particular order then check if they are equal or not
