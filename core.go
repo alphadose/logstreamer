@@ -2,9 +2,11 @@ package main
 
 import (
 	"io"
+	"runtime"
 	"sync"
 	"sync/atomic"
 
+	"github.com/alphadose/itogami"
 	"github.com/alphadose/logstreamer/grpc"
 	"github.com/alphadose/logstreamer/mongo"
 	"github.com/alphadose/logstreamer/types"
@@ -24,13 +26,19 @@ var (
 	// significant network latency might be observable
 	// More efficient to chunk data and then transmit over the wire
 	batchSize uint64
+
+	// Use self-made goroutine pool https://github.com/alphadose/itogami (benchmarks provided in the repo)
+	// Limiting concurrency to the number of available cpu cores leads to far lesser memory consumption
+	// and better performance overall due to lesser context switching among goroutines
+	// this model is much more efficient than the native infinite goroutine fire and forget model especially in resource bound cases
+	goroutinePool = itogami.NewPool(uint64(runtime.NumCPU()))
 )
 
 // starts processing with the above populated global params
 func process(mongoCollectionName ...string) {
 	var (
-		collName = "users"      // default
-		wg       sync.WaitGroup // waitgroup for synchronization in case `-parallel` flag is specified
+		collName = "users"             // default
+		wg       = new(sync.WaitGroup) // waitgroup for synchronization in case `-parallel` flag is specified
 	)
 	if len(mongoCollectionName) > 0 {
 		collName = mongoCollectionName[0]
@@ -59,16 +67,20 @@ func process(mongoCollectionName ...string) {
 			return
 		}
 		if err != nil {
+			if parallel {
+				// synchronize all running upload goroutines and wait for them to either finish or log error before process exit
+				wg.Wait()
+			}
 			utils.GracefulExit("Core-2", err)
 		}
 		if parallel {
 			wg.Add(1)
-			go func() {
+			goroutinePool.Submit(func() {
 				if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 					utils.LogError("Core-Parallel-3", err)
 				}
 				wg.Done()
-			}()
+			})
 		} else if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 			utils.GracefulExit("Core-4", err)
 		}

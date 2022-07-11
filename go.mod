@@ -3,6 +3,7 @@ module github.com/alphadose/logstreamer
 go 1.18
 
 require (
+	github.com/alphadose/itogami v0.0.0-20220705100819-134f04183c42
 	github.com/json-iterator/go v1.1.12
 	go.mongodb.org/mongo-driver v1.9.1
 	google.golang.org/grpc v1.47.0
