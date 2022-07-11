@@ -28,10 +28,10 @@ var (
 	batchSize uint64
 
 	// Use self-made goroutine pool https://github.com/alphadose/itogami (benchmarks provided in the repo)
-	// Limiting concurrency to the number of available cpu cores leads to far lesser memory consumption
-	// and better performance overall due to lesser context switching among goroutines
+	// Limiting concurrency to 2*num_cpu_cores leads to far lesser memory consumption
+	// and better performance overall due to lesser context switching among worker goroutines
 	// this model is much more efficient than the native infinite goroutine fire and forget model especially in resource bound cases
-	goroutinePool = itogami.NewPool(uint64(runtime.NumCPU()))
+	goroutinePool = itogami.NewPool(uint64(runtime.NumCPU() * 2))
 )
 
 // starts processing with the above populated global params
@@ -81,6 +81,15 @@ func process(mongoCollectionName ...string) {
 				}
 				wg.Done()
 			})
+			// testing itogami goroutine pool with 2*num_cpu_cores worker goroutines vs infinite goroutine fire and forget model
+			// itogami pool took almost the same time as the fire and forget model but it consumes much lesser memory
+			// tested on the file `data_large.txt` with batch_size 5
+			// go func() {
+			// 	if err := processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
+			// 		utils.LogError("Core-Parallel-3", err)
+			// 	}
+			// 	wg.Done()
+			// }()
 		} else if err = processBatch(payloadBatch, mongoStore, grpcStore); err != nil {
 			utils.GracefulExit("Core-4", err)
 		}
